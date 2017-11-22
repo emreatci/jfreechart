@@ -80,6 +80,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.DataUtils;
@@ -210,14 +211,20 @@ public class StackedAreaRenderer extends AreaRenderer
         // setup for collecting optional entity info...
         Shape entityArea;
         EntityCollection entities = state.getEntityCollection();
-
+        PlotOrientation orientation = plot.getOrientation();
         double y1 = 0.0;
         Number n = dataset.getValue(row, column);
         if (n != null) {
             y1 = n.doubleValue();
             if (this.renderAsPercentages) {
-                double total = DataUtils.calculateColumnTotal(dataset,
+            	double total;
+            	if (orientation == PlotOrientation.VERTICAL) {
+            		total = DataUtils.calculateColumnTotal(dataset,
                         column, state.getVisibleSeriesArray());
+            	} else {
+            		total = DataUtils.calculateColumnTotal(dataset,
+                            row, state.getVisibleSeriesArray());
+            	}
                 y1 = y1 / total;
             }
         }
@@ -228,9 +235,14 @@ public class StackedAreaRenderer extends AreaRenderer
         // leave the y values (y1, y0) untranslated as it is going to be be
         // stacked up later by previous series values, after this it will be
         // translated.
-        double xx1 = domainAxis.getCategoryMiddle(column, getColumnCount(),
+        double xx1;
+        if (orientation == PlotOrientation.VERTICAL) {
+        	xx1 = domainAxis.getCategoryMiddle(column, getColumnCount(),
                 dataArea, plot.getDomainAxisEdge());
-
+        } else {
+        	xx1 = domainAxis.getCategoryMiddle(row, getRowCount(),
+                    dataArea, plot.getRangeAxisEdge());
+        }
 
         // get the previous point and the next point so we can calculate a
         // "hot spot" for the area (used by the chart entity)...
@@ -239,8 +251,14 @@ public class StackedAreaRenderer extends AreaRenderer
         if (n != null) {
             y0 = n.doubleValue();
             if (this.renderAsPercentages) {
-                double total = DataUtils.calculateColumnTotal(dataset,
+            	double total;
+            	if (orientation == PlotOrientation.VERTICAL) {
+            		total = DataUtils.calculateColumnTotal(dataset,
                         Math.max(column - 1, 0), state.getVisibleSeriesArray());
+            	} else {
+            		total = DataUtils.calculateColumnTotal(dataset,
+                            Math.max(row - 1, 0), state.getVisibleSeriesArray());
+            	}
                 y0 = y0 / total;
             }
         }
@@ -248,28 +266,52 @@ public class StackedAreaRenderer extends AreaRenderer
                 state.getVisibleSeriesArray());
 
         // FIXME: calculate xx0
-        double xx0 = domainAxis.getCategoryStart(column, getColumnCount(),
+        double xx0;
+        if (orientation == PlotOrientation.VERTICAL) {
+        	xx0 = domainAxis.getCategoryStart(column, getColumnCount(),
                 dataArea, plot.getDomainAxisEdge());
+        } else {
+        	xx0 = domainAxis.getCategoryStart(row, getRowCount(),
+                    dataArea, plot.getRangeAxisEdge());
+        }
 
-        int itemCount = dataset.getColumnCount();
+        int itemCount;
+        if (orientation == PlotOrientation.VERTICAL) {
+        	itemCount = dataset.getColumnCount();
+        } else {
+        	itemCount = dataset.getRowCount();
+        }
         double y2 = 0.0;
         n = dataset.getValue(row, Math.min(column + 1, itemCount - 1));
         if (n != null) {
             y2 = n.doubleValue();
             if (this.renderAsPercentages) {
-                double total = DataUtils.calculateColumnTotal(dataset,
+            	double total;
+            	if (orientation == PlotOrientation.VERTICAL) {
+            		total = DataUtils.calculateColumnTotal(dataset,
                         Math.min(column + 1, itemCount - 1),
                         state.getVisibleSeriesArray());
+            	} else {
+            		total = DataUtils.calculateColumnTotal(dataset,
+                            Math.min(row + 1, itemCount - 1),
+                            state.getVisibleSeriesArray());
+            	}
                 y2 = y2 / total;
             }
         }
         double[] stack2 = getStackValues(dataset, row, Math.min(column + 1,
                 itemCount - 1), state.getVisibleSeriesArray());
-
-        double xx2 = domainAxis.getCategoryEnd(column, getColumnCount(),
+        double xx2;
+        if (orientation == PlotOrientation.VERTICAL) {
+        	xx2 = domainAxis.getCategoryEnd(column, getColumnCount(),
                 dataArea, plot.getDomainAxisEdge());
+        } else {
+        	xx2 = domainAxis.getCategoryEnd(row, getRowCount(),
+                    dataArea, plot.getRangeAxisEdge());
+        }
 
         // FIXME: calculate xxLeft and xxRight
+        // FIXME: check values for HORIZONTAL orientation
         double xxLeft = xx0;
         double xxRight = xx2;
 
@@ -278,7 +320,7 @@ public class StackedAreaRenderer extends AreaRenderer
         double[] adjStackLeft = adjustedStackValues(stack0, stack1);
         double[] adjStackRight = adjustedStackValues(stack1, stack2);
 
-        float transY1;
+        float transY1=0;
 
         RectangleEdge edge1 = plot.getRangeAxisEdge();
 
@@ -382,7 +424,6 @@ public class StackedAreaRenderer extends AreaRenderer
             g2.setPaint(itemPaint);
             g2.fill(left);
             g2.fill(right);
-
             // add an entity for the item...
             if (entities != null) {
                 GeneralPath gp = new GeneralPath(left);

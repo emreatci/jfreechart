@@ -1093,7 +1093,9 @@ public abstract class ChartFactory {
      */
     public static JFreeChart createStackedAreaChart(String title,
             String categoryAxisLabel, String valueAxisLabel,
-            CategoryDataset dataset) {
+            CategoryDataset dataset, PlotOrientation orientation) {
+    	Args.nullNotPermitted(orientation, "orientation");
+        Args.requireVerticalPlotOrientation(orientation, "orientation");
         return createStackedAreaChart(title, categoryAxisLabel, valueAxisLabel,
                 dataset, PlotOrientation.VERTICAL, true, true, false);
     }

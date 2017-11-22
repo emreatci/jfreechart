@@ -48,7 +48,7 @@ import org.jfree.chart.plot.PlotOrientation;
  *
  * @since 1.0.14
  */
-public class Args {
+public class ParamChecks {
 
     /**
      * Throws an {@code IllegalArgumentException} if the supplied 
