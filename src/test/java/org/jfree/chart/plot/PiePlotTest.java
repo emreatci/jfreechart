@@ -50,6 +50,8 @@ package org.jfree.chart.plot;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -551,11 +553,32 @@ public class PiePlotTest {
         items = plot.getLegendItems();
         assertEquals(2, items.getItemCount());
 
-        // check that negative items are always ignored
-        dataset.setValue("Item 5", -1.0);
-        items = plot.getLegendItems();
-        assertEquals(2, items.getItemCount());
+        
     }
+    /**
+     * Some checks for the getLegendItems() method.
+     */
+    @Test
+    public void testGetLegendItemsWithNegativeValue() {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        dataset.setValue("Item 1", 1.0);
+        dataset.setValue("Item 2", 2.0);
+        dataset.setValue("Item 3", 0.0);
+        dataset.setValue("Item 4", null);
+
+        PiePlot plot = new PiePlot(dataset);
+        // check that negative items throws exception
+        dataset.setValue("Item 5", -1.0);
+        LegendItemCollection items = null;
+        try {
+        	 items = plot.getLegendItems();
+        } catch (PlotException exception) {
+        	assertEquals("It is impractical to plot a pie chart with negative values.", exception.getMessage());
+        } finally {
+        	assertNull(items);
+        }
+    }
+
 
     /**
      * Check that the default section paint is not null, and that you
@@ -688,5 +711,6 @@ public class PiePlotTest {
         g2.setAttributedLabel(1, new AttributedString("TESTING"));
         assertNotEquals(plot1, plot2);
     }
+    
 
 }

@@ -2654,6 +2654,10 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
             if (n == null) {
                 include = !getIgnoreNullValues();
             }
+            else if (n != null && n.doubleValue() < 0) {
+            	throw new PlotException("It is impractical to plot a pie chart with negative values.");
+            }
+
             else {
                 v = n.doubleValue();
                 include = getIgnoreZeroValues() ? v > 0.0 : v >= 0.0;
@@ -2749,6 +2753,10 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
             if (n == null) {
                 include = !this.ignoreNullValues;
             }
+            else if (n != null && n.doubleValue() < 0) {
+            	throw new PlotException("It is impractical to plot a pie chart with negative values.");
+            }
+
             else {
                 v = n.doubleValue();
                 include = this.ignoreZeroValues ? v > 0.0 : v >= 0.0;
@@ -2932,6 +2940,7 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
             if (n == null) {
                 include = !this.ignoreNullValues;
             }
+
             else {
                 double v = n.doubleValue();
                 if (v == 0.0) {
@@ -2971,9 +2980,13 @@ public class PiePlot extends Plot implements Cloneable, Serializable {
                 }
                 section++;
             }
-            else {
-                section++;
+            else if (n == null || n.doubleValue() == 0.0) {
+            	section ++;
             }
+            else {
+            	throw new PlotException("It is impractical to plot a pie chart with negative values.");
+            }
+
         }
         return result;
     }
